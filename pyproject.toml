@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fsonl"
+version = "0.1.0"
+description = "Function-Styled Object Notation Lines — a line-based serialization format with typed schemas"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.9"
+authors = [
+    { name = "Hve" },
+]
+keywords = ["fsonl", "serialization", "jsonl", "schema"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing :: General",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/fsonl/fsonl"
+Documentation = "https://github.com/fsonl/fsonl-py"
+Repository = "https://github.com/fsonl/fsonl-py"
+
+[project.scripts]
+fsonl = "fsonl.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fsonl"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
