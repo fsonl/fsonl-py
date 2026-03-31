@@ -272,4 +272,4 @@ def _check_default_type(value, schema_type):
                 elif not f.get("optional", False):
                     return False
             return True
-    return True
+    return False

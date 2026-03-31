@@ -1,21 +1,9 @@
 """Stage 1 parser: parse FSONL text into entry dicts and SchemaDirective lists."""
 
 from ._errors import ParseError, SchemaError
-from ._scanner import skip_ws, read_identifier, looks_like_identifier
+from ._scanner import skip_ws, read_identifier, looks_like_identifier, _is_ident_start
 from ._values import parse_value
 from ._schema_parser import parse_schema_line
-
-
-def parse_document(text):
-    """Parse a full FSONL document.
-    Returns (entries: list[entry dict], schema_directives: list[SchemaDirective]).
-    Validates @schema ordering and duplicate declarations.
-    """
-    from ._types import SchemaDirective
-    items = list(parse_document_items(text))
-    entries = [item for item in items if not isinstance(item, SchemaDirective)]
-    schema_directives = [item for item in items if isinstance(item, SchemaDirective)]
-    return entries, schema_directives
 
 
 def parse_document_items(text):
@@ -124,7 +112,6 @@ def _parse_items(numbered_lines):
 def _parse_entry(line, pos, line_number):
     """Parse a single entry line starting at pos."""
     # Read type name
-    from ._scanner import _is_ident_start
     if not (pos < len(line) and _is_ident_start(line[pos])):
         raise ParseError(line_number, f"Expected type name at position {pos}")
 

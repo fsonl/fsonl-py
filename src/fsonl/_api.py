@@ -12,11 +12,6 @@ from ._errors import SchemaError, BindError
 from ._serializer import dumps as _dumps
 
 
-def _strip_line(entry: Dict[str, Any]) -> Dict[str, Any]:
-    """Remove internal _line key from a raw entry dict."""
-    return {k: v for k, v in entry.items() if k != '_line'}
-
-
 def _process_items(items, *, schema=None, ignore_inline_schema=False,
                    extra_fields=ExtraFieldPolicy.ERROR, file_schema=None):
     """Core processing loop for bind mode.
