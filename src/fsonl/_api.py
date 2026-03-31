@@ -5,7 +5,7 @@ from typing import Any, Dict, Iterator, List, Optional, Union
 from typing import IO
 
 from ._parser import parse_document_items, _prepare_file_lines, _parse_items
-from ._types import ParseResult, ExtraFieldPolicy, SchemaDirective
+from ._types import ParseResult, RawEntry, ExtraFieldPolicy, SchemaDirective
 from ._schema import Schema
 from ._binder import bind_entry
 from ._errors import SchemaError, BindError
@@ -46,11 +46,16 @@ def _process_items(items, *, schema=None, ignore_inline_schema=False,
                 raise BindError(line, f"No schema for type '{type_name}'")
 
 
-def _process_items_raw(items) -> Iterator[Dict[str, Any]]:
-    """Core processing loop for raw mode. Yields raw entry dicts."""
+def _process_items_raw(items) -> Iterator[RawEntry]:
+    """Core processing loop for raw mode. Yields RawEntry objects."""
     for item in items:
         if not isinstance(item, SchemaDirective):
-            yield _strip_line(item)
+            yield RawEntry(
+                type=item["type"],
+                positional=item["positional"],
+                named=item["named"],
+                _line=item.get("_line", 0),
+            )
 
 
 # ── Bind mode ──
@@ -130,7 +135,12 @@ def loads_raw(text: str) -> ParseResult:
         if isinstance(item, SchemaDirective):
             file_schema._add_directive(item)
         else:
-            entries.append(_strip_line(item))
+            entries.append(RawEntry(
+                type=item["type"],
+                positional=item["positional"],
+                named=item["named"],
+                _line=item.get("_line", 0),
+            ))
     return ParseResult(entries, file_schema)
 
 
@@ -158,14 +168,16 @@ def iter_raw(source: Union[str, IO[str]]) -> Iterator[Dict[str, Any]]:
 # ── Single entry ──
 
 def bind(
-    entry: Dict[str, Any],
+    entry,
     schema: Schema,
     *,
+    line: Optional[int] = None,
     extra_fields: ExtraFieldPolicy = ExtraFieldPolicy.ERROR,
 ) -> Any:
-    """Bind a single raw entry dict to a Schema."""
+    """Bind a single RawEntry or raw dict to a Schema."""
     type_name = entry["type"]
-    line = entry.get("_line", 0)
+    if line is None:
+        line = entry.get("_line", 0)
     if not schema.has(type_name):
         raise BindError(line, f"No schema for type '{type_name}'")
     directive = schema.get(type_name)

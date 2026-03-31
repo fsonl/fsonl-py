@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import enum
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Iterator, List, Optional
 
 
@@ -83,6 +83,46 @@ def schema_type_to_json(st: Any) -> Any:
                 for f in st["fields"]
             ]}
     return st
+
+
+@dataclass(frozen=True)
+class RawEntry:
+    """A raw parsed entry (Stage 1 AST)."""
+    type: str
+    positional: list
+    named: dict
+    _line: int = field(default=0, repr=False, compare=False)
+
+    def __getitem__(self, key: str) -> Any:
+        if key == "type":
+            return self.type
+        if key == "positional":
+            return self.positional
+        if key == "named":
+            return self.named
+        if key == "_line":
+            return self._line
+        raise KeyError(key)
+
+    def __contains__(self, key: object) -> bool:
+        return key in ("type", "positional", "named")
+
+    def get(self, key: str, default: Any = None) -> Any:
+        try:
+            return self[key]
+        except KeyError:
+            return default
+
+    def keys(self) -> tuple:
+        return ("type", "positional", "named")
+
+    def items(self) -> Iterator[tuple]:
+        yield ("type", self.type)
+        yield ("positional", self.positional)
+        yield ("named", self.named)
+
+    def to_dict(self) -> dict:
+        return {"type": self.type, "positional": list(self.positional), "named": dict(self.named)}
 
 
 class ParseResult:

@@ -6,6 +6,7 @@ import re
 
 from ._binder import _validate_type
 from ._errors import BindError
+from ._types import RawEntry
 
 _IDENT_RE = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
 
@@ -43,6 +44,8 @@ def dumps(entries_or_entry, *, schema=None, allow_extra=False, exclude_schema=Fa
 
 def _format_one(entry, schema=None, allow_extra=False):
     """Format a single entry dict."""
+    if isinstance(entry, RawEntry):
+        return _format_raw(entry)
     if not isinstance(entry, dict):
         raise TypeError(f"Unsupported entry type: {type(entry)}")
     if "positional" in entry:
