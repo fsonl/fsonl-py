@@ -53,7 +53,6 @@ class TestAllowExtra:
         with pytest.raises(ValueError, match="Missing required field 'b'"):
             dumps({"type": "x", "a": "ok"}, schema=schema, allow_extra=True)
 
-    @pytest.mark.xfail(reason="Serializer drops extra keys with allow_extra=True — should serialize them")
     def test_extra_keys_serialized_as_named(self, schema):
         # Extra fields should be serialized as named parameters, not dropped
         result = dumps({"type": "x", "a": "ok", "b": 1, "extra": 2}, schema=schema, allow_extra=True)

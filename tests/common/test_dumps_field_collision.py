@@ -23,7 +23,6 @@ class TestBoundEntryWithCollisionFieldNames:
     # ------------------------------------------------------------------
     # Test 1: schema field named "positional"
     # ------------------------------------------------------------------
-    @pytest.mark.xfail(reason="Serializer uses 'positional' in entry heuristic — needs isinstance(RawEntry) check")
     def test_field_named_positional_serializes_as_bound(self):
         """Bound entry with a field literally named 'positional' should serialize
         using the schema (named arg), not be misidentified as a raw entry.
@@ -54,7 +53,6 @@ class TestBoundEntryWithCollisionFieldNames:
     # ------------------------------------------------------------------
     # Test 3: schema with BOTH "positional" and "named" fields
     # ------------------------------------------------------------------
-    @pytest.mark.xfail(reason="Serializer uses 'positional' in entry heuristic — needs isinstance(RawEntry) check")
     def test_both_collision_fields_serialize_as_bound(self):
         """Bound entry with both 'positional' and 'named' fields should still
         serialize as a bound entry using the schema.
@@ -69,7 +67,6 @@ class TestBoundEntryWithCollisionFieldNames:
     # ------------------------------------------------------------------
     # Test 4: schema field "positional" as array type (positional param)
     # ------------------------------------------------------------------
-    @pytest.mark.xfail(reason="Serializer uses 'positional' in entry heuristic — needs isinstance(RawEntry) check")
     def test_field_named_positional_array_as_positional_param(self):
         """Bound entry where 'positional' is a positional (non-named) schema param
         of array type.  Should serialize the value as a positional arg, not
@@ -86,7 +83,6 @@ class TestBoundEntryWithCollisionFieldNames:
     # ------------------------------------------------------------------
     # Test 5: round-trip with "positional" field name
     # ------------------------------------------------------------------
-    @pytest.mark.xfail(reason="Serializer uses 'positional' in entry heuristic — needs isinstance(RawEntry) check")
     def test_round_trip_with_positional_field_name(self):
         """loads → dumps → loads should produce the same entry when the schema
         has a field named 'positional'.

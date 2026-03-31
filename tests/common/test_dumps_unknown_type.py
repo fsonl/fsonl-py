@@ -11,16 +11,14 @@ from fsonl import dumps, Schema
 class TestDumpsUnknownTypeWithSchema:
     """When schema is explicitly provided, unknown types must error."""
 
-    @pytest.mark.xfail(reason="Python impl silently falls back to named — should error")
     def test_unknown_type_errors(self):
         s = Schema.from_string('@schema x(a: string)')
-        with pytest.raises(ValueError, match="unknown"):
+        with pytest.raises(ValueError, match="(?i)unknown"):
             dumps({"type": "y", "a": "v"}, schema=s)
 
-    @pytest.mark.xfail(reason="Python impl silently falls back to named — should error")
     def test_unknown_type_errors_even_with_allow_extra(self):
         s = Schema.from_string('@schema x(a: string)')
-        with pytest.raises(ValueError, match="unknown"):
+        with pytest.raises(ValueError, match="(?i)unknown"):
             dumps({"type": "y", "a": "v"}, schema=s, allow_extra=True)
 
     def test_known_type_ok(self):
@@ -28,10 +26,9 @@ class TestDumpsUnknownTypeWithSchema:
         result = dumps({"type": "x", "a": "v"}, schema=s)
         assert 'x("v")' in result
 
-    @pytest.mark.xfail(reason="Python impl silently falls back to named — should error")
     def test_multi_schema_unknown_type_errors(self):
         s = Schema.from_string('@schema a(x: string)\n@schema b(y: number)')
-        with pytest.raises(ValueError, match="unknown"):
+        with pytest.raises(ValueError, match="(?i)unknown"):
             dumps({"type": "c", "z": 1}, schema=s)
 
     def test_multi_schema_known_types_ok(self):
