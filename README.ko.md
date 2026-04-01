@@ -114,7 +114,7 @@ print(entry["named"])       # {'flag': True}
 | `load_raw(fp)` | 파일 객체에서 바인딩 없이 파싱 (Stage 1만) |
 | `iter_entries(source, *, schema, ignore_inline_schema, extra_fields)` | 바인딩된 엔트리 지연 이터레이터 |
 | `iter_raw(source)` | Raw 엔트리 지연 이터레이터 |
-| `bind(entry, schema, *, extra_fields)` | 단일 raw dict를 Schema에 바인딩 |
+| `bind(entry, schema, *, line, extra_fields)` | 단일 raw dict를 Schema에 바인딩 |
 
 ### 직렬화
 
@@ -194,9 +194,6 @@ echo '@schema x(a: number)\nx(1)' | python -m fsonl parse
 
 # Raw 파싱 (바인딩 없음)
 echo 'x(1)' | python -m fsonl parse --raw
-
-# 미정의 타입을 raw dict로
-echo 'x(1)' | python -m fsonl parse --allow-unknown
 
 # @schema 디렉티브만 추출
 echo '@schema x(a: number)\nx(1)' | python -m fsonl parse --schema

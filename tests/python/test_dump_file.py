@@ -3,7 +3,17 @@
 import io
 import os
 import tempfile
+import pytest
 from fsonl import dump, Schema
+
+
+class TestDumpRejectsSingleDict:
+    """dump() must only accept a list, not a single dict."""
+
+    def test_single_dict_raises_type_error(self):
+        buf = io.StringIO()
+        with pytest.raises(TypeError, match="dump()"):
+            dump({"type": "x", "v": 1}, buf)
 
 
 class TestDump:

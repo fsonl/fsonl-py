@@ -189,6 +189,8 @@ def dump(
     exclude_schema: bool = False,
 ) -> None:
     """Serialize entries to FSONL and write to a file object."""
+    if not isinstance(entries, list):
+        raise TypeError("dump() requires a list of entries")
     fp.write(_dumps(entries, schema=schema, allow_extra=allow_extra,
                     exclude_schema=exclude_schema))
 
