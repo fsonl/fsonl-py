@@ -1,7 +1,7 @@
 """Public API: loads, load, loads_raw, iter_entries, iter_raw, bind, dumps."""
 from __future__ import annotations
 
-from typing import Any, Dict, Iterator, List, Optional, Union
+from typing import Any, Iterator, List, Optional, Union
 from typing import IO
 
 from ._parser import parse_document_items, _prepare_file_lines, _parse_items
@@ -121,11 +121,11 @@ def loads_raw(text: str) -> ParseResult:
     """Parse FSONL text without schema binding (Stage 1 only).
 
     Returns:
-        ParseResult with raw entry dicts and file schema (if any)
+        ParseResult with RawEntry objects and file schema (if any)
     """
     items = list(parse_document_items(text))
     file_schema = Schema()
-    entries: List[Dict[str, Any]] = []
+    entries: List[RawEntry] = []
     for item in items:
         if isinstance(item, SchemaDirective):
             file_schema._add_directive(item)
@@ -147,8 +147,8 @@ def load_raw(fp: IO[str]) -> ParseResult:
     return loads_raw(fp.read())
 
 
-def iter_raw(source: Union[str, IO[str]]) -> Iterator[Dict[str, Any]]:
-    """Lazily iterate over raw entries from a string or file object.
+def iter_raw(source: Union[str, IO[str]]) -> Iterator[RawEntry]:
+    """Lazily iterate over RawEntry objects from a string or file object.
 
     Note: open file objects with newline='' to preserve bare \\r detection.
     """

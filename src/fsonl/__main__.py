@@ -1,4 +1,4 @@
-"""CLI entry point: python -m fsonl parse [--raw|--schema] [--define '...']"""
+"""CLI entry point: python -m fsonl parse [--raw|--schema] [--define '...'] [--extra-fields error|preserve|strip]"""
 
 import sys
 import json
@@ -17,7 +17,7 @@ def _parse_args(argv):
     """Parse CLI arguments, extracting mode flags and --define values."""
     args = argv[1:]
     if not args or args[0] != "parse":
-        print("Usage: fsonl parse [--raw|--schema] [--define '...']", file=sys.stderr)
+        print("Usage: fsonl parse [--raw|--schema] [--define '...'] [--extra-fields error|preserve|strip]", file=sys.stderr)
         sys.exit(1)
 
     mode_flags = set()
