@@ -1,4 +1,8 @@
-"""Cross-validation order independence tests: union/object field order should not matter."""
+"""Common API tests — all language implementations should have equivalent tests.
+
+Covers: cross-validation of inline @schema vs code schema — union order independence,
+object field order independence, and variadic type mismatch detection.
+"""
 
 import pytest
 from fsonl import loads, Schema
@@ -47,3 +51,27 @@ class TestObjectFieldOrderIndependence:
         text = '@schema x(a: {c: bool, a: string, b: number})\nx({"a": "v", "b": 1, "c": true})\n'
         result = loads(text, schema=code)
         assert result.entries[0] == {"type": "x", "a": {"a": "v", "b": 1, "c": True}}
+
+
+class TestDefaultValueKeyOrderIndependence:
+    """Object default values should match regardless of key order."""
+
+    def test_object_default_different_key_order(self):
+        code = Schema.from_string(
+            '@schema x(--meta: {a: string, b: number} = {"a": "v", "b": 1})'
+        )
+        text = '@schema x(--meta: {a: string, b: number} = {"b": 1, "a": "v"})\n'
+        # Should NOT raise — values are structurally equal
+        loads(text, schema=code)
+
+
+class TestVariadicTypeMismatch:
+    """Variadic vs non-variadic triggers type mismatch in cross-validation."""
+
+    def test_variadic_mismatch(self):
+        # When variadic differs, types also differ (array vs scalar), so
+        # cross-validation raises "type mismatch" before reaching variadic check.
+        code = Schema.from_string('@schema x(*a: string[])')
+        text = '@schema x(a: string)\nx("hi")\n'
+        with pytest.raises(SchemaError):
+            loads(text, schema=code)

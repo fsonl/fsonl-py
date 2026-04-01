@@ -6,6 +6,7 @@ import re
 
 from ._binder import _validate_type
 from ._errors import BindError
+from ._types import RawEntry, ParamKind
 
 _IDENT_RE = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
 
@@ -42,26 +43,26 @@ def dumps(entries_or_entry, *, schema=None, allow_extra=False, exclude_schema=Fa
 
 
 def _format_one(entry, schema=None, allow_extra=False):
-    """Format a single entry dict."""
+    """Format a single entry (RawEntry or bound dict)."""
+    if isinstance(entry, RawEntry):
+        return _format_raw(entry)
     if not isinstance(entry, dict):
         raise TypeError(f"Unsupported entry type: {type(entry)}")
-    if "positional" in entry:
-        return _format_raw(entry)
     return _format_dict(entry, schema, allow_extra)
 
 
-def _format_raw(entry):
-    """Format a raw entry dict (with positional/named keys)."""
-    _validate_identifier(entry["type"])
+def _format_raw(entry: RawEntry):
+    """Format a RawEntry."""
+    _validate_identifier(entry.type)
     parts = []
-    for v in entry["positional"]:
+    for v in entry.positional:
         parts.append(_format_value(v))
-    for k, v in entry["named"].items():
+    for k, v in entry.named.items():
         if k == "type":
             raise ValueError("'type' is a reserved key and cannot be used as a named argument")
         _validate_identifier(k)
         parts.append(f"{k}={_format_value(v)}")
-    return f"{entry['type']}({', '.join(parts)})"
+    return f"{entry.type}({', '.join(parts)})"
 
 
 def _format_dict(entry, schema=None, allow_extra=False):
@@ -87,7 +88,7 @@ def _format_dict(entry, schema=None, allow_extra=False):
                 _validate_type(value, param.schema_type, 0, param.name)
             except BindError as e:
                 raise ValueError(str(e)) from None
-            if param.kind == "positional" and not param.variadic:
+            if param.kind == ParamKind.POSITIONAL and not param.variadic:
                 parts.append(_format_value(value))
             elif param.variadic:
                 # Variadic: expand array as positional args
@@ -95,7 +96,7 @@ def _format_dict(entry, schema=None, allow_extra=False):
                     raise TypeError(f"Variadic field '{param.name}' must be a list, got {type(value).__name__}")
                 for v in value:
                     parts.append(_format_value(v))
-            elif param.kind == "named":
+            elif param.kind == ParamKind.NAMED:
                 parts.append(f"{param.name}={_format_value(value)}")
 
         # Check for extra keys not in schema
@@ -103,7 +104,13 @@ def _format_dict(entry, schema=None, allow_extra=False):
         extra = set(entry.keys()) - declared
         if extra and not allow_extra:
             raise ValueError(f"Extra keys not in schema: {', '.join(sorted(extra))}")
+        if extra and allow_extra:
+            for k in sorted(extra):
+                _validate_identifier(k)
+                parts.append(f"{k}={_format_value(entry[k])}")
     else:
+        if schema is not None:
+            raise ValueError(f"Unknown type '{type_name}' not defined in schema")
         # No schema: all fields as named (except type)
         for k, v in entry.items():
             if k == "type":
@@ -151,7 +158,7 @@ def _format_schema_param(param):
 
     if param.variadic:
         prefix = "*"
-    elif param.kind == "named":
+    elif param.kind == ParamKind.NAMED:
         prefix = "--"
 
     name = f"{prefix}{param.name}"

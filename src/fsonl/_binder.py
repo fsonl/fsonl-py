@@ -3,7 +3,7 @@
 import copy
 
 from ._errors import BindError
-from ._types import ExtraFieldPolicy
+from ._types import ExtraFieldPolicy, ParamKind
 
 
 def bind_entry(raw_entry, schema_directive, line_number=None, extra_fields=ExtraFieldPolicy.ERROR):
@@ -29,7 +29,7 @@ def bind_entry(raw_entry, schema_directive, line_number=None, extra_fields=Extra
     has_variadic = any(p.variadic for p in schema_directive.params)
 
     for param in schema_directive.params:
-        if param.kind == "positional" and not param.variadic:
+        if param.kind == ParamKind.POSITIONAL and not param.variadic:
             # Regular positional parameter
             if positional_idx < len(positional):
                 value = positional[positional_idx]
@@ -43,7 +43,7 @@ def bind_entry(raw_entry, schema_directive, line_number=None, extra_fields=Extra
             else:
                 raise BindError(line_number, f"Missing required positional argument '{param.name}'")
 
-        elif param.kind == "positional" and param.variadic:
+        elif param.kind == ParamKind.POSITIONAL and param.variadic:
             # Variadic: consume all remaining positional args
             remaining = positional[positional_idx:]
             element_type = param.schema_type.get("element") if isinstance(param.schema_type, dict) else None
@@ -52,7 +52,7 @@ def bind_entry(raw_entry, schema_directive, line_number=None, extra_fields=Extra
             result[param.name] = remaining
             positional_idx = len(positional)
 
-        elif param.kind == "named":
+        elif param.kind == ParamKind.NAMED:
             if param.name in named:
                 value = named[param.name]
                 value = _validate_type(value, param.schema_type, line_number, param.name)
@@ -69,7 +69,7 @@ def bind_entry(raw_entry, schema_directive, line_number=None, extra_fields=Extra
         raise BindError(line_number, f"Too many positional arguments: expected {positional_idx}, got {len(positional)}")
 
     # Check for undeclared named args — policy driven by extra_fields
-    declared_named = set(p.name for p in schema_directive.params if p.kind == "named")
+    declared_named = set(p.name for p in schema_directive.params if p.kind == ParamKind.NAMED)
     extra_keys = set(named.keys()) - declared_named
     if extra_keys:
         if extra_fields == ExtraFieldPolicy.ERROR:

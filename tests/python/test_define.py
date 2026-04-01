@@ -1,68 +1,8 @@
-"""Tests for Schema.define decorator, OMIT sentinel, from_file, bare from_string."""
+"""Python-specific tests — features unique to the Python implementation"""
 
-import os
 import sys
-import tempfile
 import pytest
-from fsonl import Schema, dumps, loads, OMIT
-
-
-class TestBareFromString:
-    """from_string without @schema prefix."""
-
-    def test_bare_single(self):
-        s = Schema.from_string('user(name: string)')
-        assert s.has('user')
-        assert s.get('user').params[0].name == 'name'
-
-    def test_bare_multiple(self):
-        s = Schema.from_string("""
-user(name: string, --email: string)
-log(level: string, *msg: string[])
-""")
-        assert s.type_names() == ['user', 'log']
-
-    def test_bare_with_default(self):
-        s = Schema.from_string('x(a: string, --b?: number = 42)')
-        p = s.get('x').params[1]
-        assert p.optional is True
-        assert p.has_default is True
-        assert p.default == 42
-
-    def test_mixed_prefix_and_bare(self):
-        s = Schema.from_string("""
-@schema x(a: string)
-y(b: number)
-""")
-        assert s.has('x')
-        assert s.has('y')
-
-
-class TestFromFile:
-    """Schema.from_file loads @schema from .fsonl files."""
-
-    def test_from_file(self):
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.fsonl', delete=False) as f:
-            f.write('@schema x(a: string)\n@schema y(b: number)\nx("hello")\n')
-            f.flush()
-            path = f.name
-        try:
-            s = Schema.from_file(path)
-            assert s.type_names() == ['x', 'y']
-        finally:
-            os.unlink(path)
-
-    def test_from_file_ignores_entries(self):
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.fsonl', delete=False) as f:
-            f.write('x("hello")\n@schema x(a: string)\n')
-            f.flush()
-            path = f.name
-        try:
-            # entries are ignored, only @schema extracted
-            s = Schema.from_file(path)
-            assert s.has('x')
-        finally:
-            os.unlink(path)
+from fsonl import Schema, dumps, loads, OMIT, ParamKind
 
 
 class TestOMIT:
@@ -92,10 +32,10 @@ class TestDefineDecorator:
         assert s.has('user')
         params = s.get('user').params
         assert params[0].name == 'name'
-        assert params[0].kind == 'positional'
+        assert params[0].kind == ParamKind.POSITIONAL
         assert params[0].schema_type == 'string'
         assert params[1].name == 'email'
-        assert params[1].kind == 'named'
+        assert params[1].kind == ParamKind.NAMED
 
     def test_named_with_default(self):
         s = Schema()

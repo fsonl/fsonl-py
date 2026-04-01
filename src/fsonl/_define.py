@@ -5,7 +5,7 @@ import types
 import typing
 from typing import Union, get_origin, get_args
 
-from ._types import SchemaDirective, SchemaParam, OMIT
+from ._types import SchemaDirective, SchemaParam, ParamKind, OMIT
 
 
 # Python type → FSONL type string
@@ -40,7 +40,7 @@ def _fn_to_directive(fn):
             element_type = _python_type_to_schema(ann)
             schema_type = {"kind": "array", "element": element_type}
             params.append(SchemaParam(
-                name=name, kind="positional", schema_type=schema_type,
+                name=name, kind=ParamKind.POSITIONAL, schema_type=schema_type,
                 optional=False, variadic=True,
             ))
 
@@ -54,7 +54,7 @@ def _fn_to_directive(fn):
             is_omit = param.default is OMIT
             has_default = param.default is not inspect.Parameter.empty and not is_omit
             params.append(SchemaParam(
-                name=name, kind="positional", schema_type=schema_type,
+                name=name, kind=ParamKind.POSITIONAL, schema_type=schema_type,
                 optional=has_default or is_omit, has_default=has_default,
                 default=param.default if has_default else None,
             ))
@@ -68,7 +68,7 @@ def _fn_to_directive(fn):
             is_omit = param.default is OMIT
             has_default = param.default is not inspect.Parameter.empty and not is_omit
             params.append(SchemaParam(
-                name=name, kind="named", schema_type=schema_type,
+                name=name, kind=ParamKind.NAMED, schema_type=schema_type,
                 optional=has_default or is_omit, has_default=has_default,
                 default=param.default if has_default else None,
             ))

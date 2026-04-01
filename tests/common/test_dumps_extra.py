@@ -1,4 +1,9 @@
-"""Serializer allow_extra tests: required field validation, extra key detection."""
+"""Common API tests — all language implementations should have equivalent tests.
+
+Covers: dumps() with schema validation — missing required fields, extra key
+detection, allow_extra=True behavior. Extra keys with allow_extra=True should
+be serialized as named parameters (not silently dropped).
+"""
 
 import pytest
 from fsonl import dumps, Schema
@@ -38,7 +43,7 @@ class TestDefault:
 
 
 class TestAllowExtra:
-    """allow_extra=True: ignore extra keys, still reject missing required fields."""
+    """allow_extra=True: extra keys are serialized as named params, missing required still errors."""
 
     def test_missing_required_positional_still_errors(self, schema):
         with pytest.raises(ValueError, match="Missing required field 'a'"):
@@ -48,8 +53,11 @@ class TestAllowExtra:
         with pytest.raises(ValueError, match="Missing required field 'b'"):
             dumps({"type": "x", "a": "ok"}, schema=schema, allow_extra=True)
 
-    def test_extra_keys_ignored(self, schema):
-        assert dumps({"type": "x", "a": "ok", "b": 1, "extra": 2}, schema=schema, allow_extra=True) == '@schema x(a: string, --b: number)\nx("ok", b=1)\n'
+    def test_extra_keys_serialized_as_named(self, schema):
+        # Extra fields should be serialized as named parameters, not dropped
+        result = dumps({"type": "x", "a": "ok", "b": 1, "extra": 2}, schema=schema, allow_extra=True)
+        assert '@schema x(a: string, --b: number)\n' in result
+        assert 'x("ok", b=1, extra=2)\n' in result
 
     def test_optional_named_omitted(self):
         s = Schema.from_string('@schema z(a: string, --b?: number)')

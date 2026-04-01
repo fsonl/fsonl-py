@@ -1,20 +1,15 @@
 """Public API: loads, load, loads_raw, iter_entries, iter_raw, bind, dumps."""
 from __future__ import annotations
 
-from typing import Any, Dict, Iterator, List, Optional, Union
+from typing import Any, Iterator, List, Optional, Union
 from typing import IO
 
 from ._parser import parse_document_items, _prepare_file_lines, _parse_items
-from ._types import ParseResult, ExtraFieldPolicy, SchemaDirective
+from ._types import ParseResult, RawEntry, ExtraFieldPolicy, SchemaDirective
 from ._schema import Schema
 from ._binder import bind_entry
 from ._errors import SchemaError, BindError
 from ._serializer import dumps as _dumps
-
-
-def _strip_line(entry: Dict[str, Any]) -> Dict[str, Any]:
-    """Remove internal _line key from a raw entry dict."""
-    return {k: v for k, v in entry.items() if k != '_line'}
 
 
 def _process_items(items, *, schema=None, ignore_inline_schema=False,
@@ -46,11 +41,16 @@ def _process_items(items, *, schema=None, ignore_inline_schema=False,
                 raise BindError(line, f"No schema for type '{type_name}'")
 
 
-def _process_items_raw(items) -> Iterator[Dict[str, Any]]:
-    """Core processing loop for raw mode. Yields raw entry dicts."""
+def _process_items_raw(items) -> Iterator[RawEntry]:
+    """Core processing loop for raw mode. Yields RawEntry objects."""
     for item in items:
         if not isinstance(item, SchemaDirective):
-            yield _strip_line(item)
+            yield RawEntry(
+                type=item["type"],
+                positional=item["positional"],
+                named=item["named"],
+                _line=item.get("_line", 0),
+            )
 
 
 # ── Bind mode ──
@@ -121,16 +121,21 @@ def loads_raw(text: str) -> ParseResult:
     """Parse FSONL text without schema binding (Stage 1 only).
 
     Returns:
-        ParseResult with raw entry dicts and file schema (if any)
+        ParseResult with RawEntry objects and file schema (if any)
     """
     items = list(parse_document_items(text))
     file_schema = Schema()
-    entries: List[Dict[str, Any]] = []
+    entries: List[RawEntry] = []
     for item in items:
         if isinstance(item, SchemaDirective):
             file_schema._add_directive(item)
         else:
-            entries.append(_strip_line(item))
+            entries.append(RawEntry(
+                type=item["type"],
+                positional=item["positional"],
+                named=item["named"],
+                _line=item.get("_line", 0),
+            ))
     return ParseResult(entries, file_schema)
 
 
@@ -142,8 +147,8 @@ def load_raw(fp: IO[str]) -> ParseResult:
     return loads_raw(fp.read())
 
 
-def iter_raw(source: Union[str, IO[str]]) -> Iterator[Dict[str, Any]]:
-    """Lazily iterate over raw entries from a string or file object.
+def iter_raw(source: Union[str, IO[str]]) -> Iterator[RawEntry]:
+    """Lazily iterate over RawEntry objects from a string or file object.
 
     Note: open file objects with newline='' to preserve bare \\r detection.
     """
@@ -158,18 +163,19 @@ def iter_raw(source: Union[str, IO[str]]) -> Iterator[Dict[str, Any]]:
 # ── Single entry ──
 
 def bind(
-    entry: Dict[str, Any],
+    entry: RawEntry,
     schema: Schema,
     *,
+    line: Optional[int] = None,
     extra_fields: ExtraFieldPolicy = ExtraFieldPolicy.ERROR,
 ) -> Any:
-    """Bind a single raw entry dict to a Schema."""
+    """Bind a single RawEntry to a Schema."""
     type_name = entry["type"]
-    line = entry.get("_line", 0)
+    resolved_line: int = line if line is not None else entry.get("_line", 0)
     if not schema.has(type_name):
-        raise BindError(line, f"No schema for type '{type_name}'")
+        raise BindError(resolved_line, f"No schema for type '{type_name}'")
     directive = schema.get(type_name)
-    return bind_entry(entry, directive, line_number=line, extra_fields=extra_fields)
+    return bind_entry(entry, directive, line_number=resolved_line, extra_fields=extra_fields)
 
 
 # ── Serialization ──
@@ -232,7 +238,7 @@ def _cross_validate(code_directive, file_directive):
 
         if fp.kind != cp.kind:
             raise SchemaError(line,
-                f"Parameter '{fp.name}' kind mismatch: @schema '{fp.kind}', code '{cp.kind}'")
+                f"Parameter '{fp.name}' kind mismatch: @schema '{fp.kind.value}', code '{cp.kind.value}'")
 
         if _normalize_type(fp.schema_type) != _normalize_type(cp.schema_type):
             raise SchemaError(line,

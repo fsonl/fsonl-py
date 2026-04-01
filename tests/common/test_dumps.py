@@ -1,7 +1,11 @@
-"""Serializer validation tests: NaN/Infinity rejection, invalid keys, round-trip."""
+"""Common API tests — all language implementations should have equivalent tests.
+
+Covers: dumps() rejection of invalid values/keys, valid serialization cases,
+and dumps() with a list of entries.
+"""
 
 import pytest
-from fsonl import dumps, loads, Schema
+from fsonl import dumps, loads, loads_raw, Schema
 
 
 class TestSerializerRejectsInvalid:
@@ -52,12 +56,11 @@ class TestSerializerValid:
 
     def test_round_trip_named(self):
         original = 'x(name="hello", count=42)\n'
-        from fsonl import loads_raw
         result = loads_raw(original)
         output = dumps(result.entries[0])
         re_parsed = loads_raw(output)
-        assert result.entries[0]["type"] == re_parsed.entries[0]["type"]
-        assert result.entries[0]["named"] == re_parsed.entries[0]["named"]
+        assert result.entries[0].type == re_parsed.entries[0].type
+        assert result.entries[0].named == re_parsed.entries[0].named
 
     def test_round_trip_positional_with_schema(self):
         schema = Schema.from_string('@schema x(a: string, --b: number)')
@@ -66,3 +69,31 @@ class TestSerializerValid:
         assert text == '@schema x(a: string, --b: number)\nx("hello", b=42)\n'
         result = loads(text, schema=schema)
         assert result.entries[0] == entry
+
+
+class TestDumpsList:
+    """dumps() with a list of entries should serialize all of them."""
+
+    def test_dumps_empty_list(self):
+        assert dumps([]) == ''
+
+    def test_dumps_single_item_list(self):
+        assert dumps([{"type": "x", "v": 1}]) == 'x(v=1)\n'
+
+    def test_dumps_multiple_entries(self):
+        entries = [{"type": "a", "n": 1}, {"type": "b", "n": 2}]
+        result = dumps(entries)
+        assert result == 'a(n=1)\nb(n=2)\n'
+
+    def test_dumps_list_with_schema(self):
+        schema = Schema.from_string('@schema x(a: string)')
+        entries = [{"type": "x", "a": "one"}, {"type": "x", "a": "two"}]
+        result = dumps(entries, schema=schema, exclude_schema=True)
+        assert result == 'x("one")\nx("two")\n'
+
+    def test_dumps_list_with_schema_prepends_once(self):
+        schema = Schema.from_string('@schema x(a: string)')
+        entries = [{"type": "x", "a": "one"}, {"type": "x", "a": "two"}]
+        result = dumps(entries, schema=schema)
+        assert result.count('@schema') == 1
+        assert result.startswith('@schema x(a: string)\n')

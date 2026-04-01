@@ -1,4 +1,4 @@
-"""CLI entry point: python -m fsonl parse [--raw|--allow-unknown|--schema]"""
+"""CLI entry point: python -m fsonl parse [--raw|--schema] [--define '...'] [--extra-fields error|preserve|strip]"""
 
 import sys
 import json
@@ -6,35 +6,71 @@ import json
 from ._parser import parse_document_items
 from ._types import SchemaDirective
 from ._schema import Schema
-from ._api import loads, loads_raw, bind
+from ._types import ExtraFieldPolicy
+from ._api import loads, loads_raw
 from . import _errors
 
+_EXTRA_FIELD_VALUES = {p.value: p for p in ExtraFieldPolicy}
 
-def main():
-    args = sys.argv[1:]
+
+def _parse_args(argv):
+    """Parse CLI arguments, extracting mode flags and --define values."""
+    args = argv[1:]
     if not args or args[0] != "parse":
-        print("Usage: fsonl parse [--raw|--allow-unknown|--schema]", file=sys.stderr)
+        print("Usage: fsonl parse [--raw|--schema] [--define '...'] [--extra-fields error|preserve|strip]", file=sys.stderr)
         sys.exit(1)
 
-    flags = set(args[1:])
-    valid_flags = {"--raw", "--allow-unknown", "--schema"}
-    unknown = flags - valid_flags
-    if unknown:
-        print(f"Error: unknown flag(s): {', '.join(unknown)}", file=sys.stderr)
-        sys.exit(1)
-    exclusive = flags & valid_flags
-    if len(exclusive) > 1:
-        print("Error: --raw, --allow-unknown, --schema are mutually exclusive", file=sys.stderr)
+    mode_flags = set()
+    defines = []
+    extra_fields = ExtraFieldPolicy.ERROR
+    i = 1
+    while i < len(args):
+        if args[i] == "--define":
+            if i + 1 >= len(args):
+                print("Error: --define requires a value", file=sys.stderr)
+                sys.exit(1)
+            defines.append(args[i + 1])
+            i += 2
+        elif args[i] == "--extra-fields":
+            if i + 1 >= len(args):
+                print("Error: --extra-fields requires a value (error|preserve|strip)", file=sys.stderr)
+                sys.exit(1)
+            val = args[i + 1]
+            if val not in _EXTRA_FIELD_VALUES:
+                print(f"Error: --extra-fields must be one of: error, preserve, strip", file=sys.stderr)
+                sys.exit(1)
+            extra_fields = _EXTRA_FIELD_VALUES[val]
+            i += 2
+        elif args[i] in ("--raw", "--schema"):
+            mode_flags.add(args[i])
+            i += 1
+        else:
+            print(f"Error: unknown flag: {args[i]}", file=sys.stderr)
+            sys.exit(1)
+
+    if len(mode_flags) > 1:
+        print("Error: --raw, --schema are mutually exclusive", file=sys.stderr)
         sys.exit(1)
 
-    if "--raw" in flags:
+    if "--raw" in mode_flags:
         mode = "raw"
-    elif "--allow-unknown" in flags:
-        mode = "allow-unknown"
-    elif "--schema" in flags:
+    elif "--schema" in mode_flags:
         mode = "schema"
     else:
         mode = "bind"
+
+    # Build code schema from --define values
+    code_schema = None
+    if defines:
+        code_schema = Schema()
+        for d in defines:
+            code_schema.add(d)
+
+    return mode, code_schema, extra_fields
+
+
+def main():
+    mode, code_schema, extra_fields = _parse_args(sys.argv)
 
     text = sys.stdin.read()
 
@@ -48,24 +84,11 @@ def main():
 
         elif mode == "raw":
             for entry in loads_raw(text):
-                print(json.dumps(entry, ensure_ascii=False))
-
-        elif mode == "allow-unknown":
-            # Parse raw, then try to bind each entry
-            raw_result = loads_raw(text)
-            file_schema = raw_result.schema
-
-            for entry in raw_result:
-                type_name = entry["type"]
-                if file_schema and file_schema.has(type_name):
-                    bound = bind(entry, file_schema)
-                    print(json.dumps(bound, ensure_ascii=False))
-                else:
-                    print(json.dumps(entry, ensure_ascii=False))
+                print(json.dumps(entry.to_dict(), ensure_ascii=False))
 
         else:
             # bind mode
-            result = loads(text)
+            result = loads(text, schema=code_schema, extra_fields=extra_fields)
             for entry in result:
                 print(json.dumps(entry, ensure_ascii=False))
 
