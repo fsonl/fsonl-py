@@ -53,6 +53,18 @@ class TestObjectFieldOrderIndependence:
         assert result.entries[0] == {"type": "x", "a": {"a": "v", "b": 1, "c": True}}
 
 
+class TestDefaultValueKeyOrderIndependence:
+    """Object default values should match regardless of key order."""
+
+    def test_object_default_different_key_order(self):
+        code = Schema.from_string(
+            '@schema x(--meta: {a: string, b: number} = {"a": "v", "b": 1})'
+        )
+        text = '@schema x(--meta: {a: string, b: number} = {"b": 1, "a": "v"})\n'
+        # Should NOT raise — values are structurally equal
+        loads(text, schema=code)
+
+
 class TestVariadicTypeMismatch:
     """Variadic vs non-variadic triggers type mismatch in cross-validation."""
 

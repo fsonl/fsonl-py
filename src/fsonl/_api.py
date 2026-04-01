@@ -239,7 +239,7 @@ def _cross_validate(code_directive, file_directive):
 
         if fp.kind != cp.kind:
             raise SchemaError(line,
-                f"Parameter '{fp.name}' kind mismatch: @schema '{fp.kind}', code '{cp.kind}'")
+                f"Parameter '{fp.name}' kind mismatch: @schema '{fp.kind.value}', code '{cp.kind.value}'")
 
         if _normalize_type(fp.schema_type) != _normalize_type(cp.schema_type):
             raise SchemaError(line,

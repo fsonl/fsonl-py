@@ -1,7 +1,7 @@
 """Python-specific tests — features unique to the Python implementation"""
 
 from fsonl import Schema
-from fsonl._types import SchemaParam, SchemaDirective
+from fsonl._types import SchemaParam, SchemaDirective, ParamKind
 
 
 class TestToDict:
@@ -10,7 +10,7 @@ class TestToDict:
     def test_schema_param_to_dict(self):
         param = SchemaParam(
             name="foo",
-            kind="positional",
+            kind=ParamKind.POSITIONAL,
             schema_type="string",
             optional=False,
             variadic=False,
@@ -29,7 +29,7 @@ class TestToDict:
     def test_schema_param_to_dict_with_default(self):
         param = SchemaParam(
             name="n",
-            kind="named",
+            kind=ParamKind.NAMED,
             schema_type="number",
             optional=True,
             variadic=False,
@@ -44,14 +44,14 @@ class TestToDict:
     def test_schema_param_array_type_to_dict(self):
         param = SchemaParam(
             name="tags",
-            kind="positional",
+            kind=ParamKind.POSITIONAL,
             schema_type={"kind": "array", "element": "string"},
         )
         d = param.to_dict()
         assert d["type"] == {"array": "string"}
 
     def test_schema_directive_to_dict(self):
-        param = SchemaParam(name="a", kind="positional", schema_type="string")
+        param = SchemaParam(name="a", kind=ParamKind.POSITIONAL, schema_type="string")
         directive = SchemaDirective(name="x", params=[param], line=1)
         d = directive.to_dict()
         assert d["@schema"] == "x"

@@ -28,10 +28,16 @@ class ExtraFieldPolicy(enum.Enum):
     STRIP = "strip"
 
 
+class ParamKind(enum.Enum):
+    """Kind of schema parameter."""
+    POSITIONAL = "positional"
+    NAMED = "named"
+
+
 @dataclass
 class SchemaParam:
     name: str
-    kind: str
+    kind: ParamKind
     schema_type: Any
     optional: bool = False
     variadic: bool = False
@@ -41,7 +47,7 @@ class SchemaParam:
     def to_dict(self) -> dict:
         return {
             "name": self.name,
-            "kind": self.kind,
+            "kind": self.kind.value,
             "type": schema_type_to_json(self.schema_type),
             "optional": self.optional,
             "variadic": self.variadic,

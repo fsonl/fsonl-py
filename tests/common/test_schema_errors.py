@@ -39,3 +39,15 @@ class TestParserEdgeErrors:
     def test_bare_cr(self):
         with pytest.raises(ParseError):
             loads_raw('x(1)\rx(2)\n')
+
+
+class TestSchemaBareCarriageReturn:
+    """Schema.from_string must reject bare \\r just like the parser does."""
+
+    def test_bare_cr_in_schema_from_string(self):
+        with pytest.raises(ParseError):
+            Schema.from_string('@schema x(a: string)\r')
+
+    def test_bare_cr_mid_schema_from_string(self):
+        with pytest.raises(ParseError):
+            Schema.from_string('@schema x(a:\r string)')

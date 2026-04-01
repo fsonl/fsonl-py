@@ -3,7 +3,7 @@
 from ._errors import ParseError
 from ._scanner import skip_ws, read_identifier, looks_like_identifier, expect, _is_ident_char
 from ._values import parse_value
-from ._types import SchemaDirective, SchemaParam
+from ._types import SchemaDirective, SchemaParam, ParamKind
 
 
 def parse_schema_line(line, pos, line_number):
@@ -79,7 +79,7 @@ def _parse_schema_param(line, pos, line_number):
         # Variadic must be array type
         if not (isinstance(schema_type, dict) and schema_type.get("kind") == "array"):
             raise ParseError(line_number, "Variadic parameter must have array type")
-        return SchemaParam(name, "positional", schema_type, variadic=True), pos
+        return SchemaParam(name, ParamKind.POSITIONAL, schema_type, variadic=True), pos
 
     elif pos + 1 < len(line) and line[pos:pos + 2] == '--':
         # Named: --name?: type = default
@@ -107,7 +107,7 @@ def _parse_schema_param(line, pos, line_number):
             if not _check_default_type(default, schema_type):
                 raise ParseError(line_number, f"Default value for '{name}' does not match declared type")
 
-        return SchemaParam(name, "named", schema_type, optional=optional,
+        return SchemaParam(name, ParamKind.NAMED, schema_type, optional=optional,
                            has_default=has_default, default=default), pos
 
     else:
@@ -117,7 +117,7 @@ def _parse_schema_param(line, pos, line_number):
         pos = expect(line, pos, ':', line_number)
         pos = skip_ws(line, pos)
         schema_type, pos = _parse_schema_type(line, pos, line_number)
-        return SchemaParam(name, "positional", schema_type), pos
+        return SchemaParam(name, ParamKind.POSITIONAL, schema_type), pos
 
 
 def _parse_schema_type(line, pos, line_number):
@@ -214,15 +214,15 @@ def _validate_schema_params(params, line_number):
     # Positional params must come before named params
     seen_named = False
     for p in params:
-        if p.kind == "named":
+        if p.kind == ParamKind.NAMED:
             seen_named = True
-        elif p.kind == "positional" and seen_named:
+        elif p.kind == ParamKind.POSITIONAL and seen_named:
             raise ParseError(line_number, "Positional parameter after named parameter")
 
     # Variadic must be the last positional
     found_variadic = False
     for p in params:
-        if found_variadic and p.kind == "positional":
+        if found_variadic and p.kind == ParamKind.POSITIONAL:
             raise ParseError(line_number, "Variadic parameter must be last positional")
         if p.variadic:
             found_variadic = True

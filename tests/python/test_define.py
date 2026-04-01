@@ -2,7 +2,7 @@
 
 import sys
 import pytest
-from fsonl import Schema, dumps, loads, OMIT
+from fsonl import Schema, dumps, loads, OMIT, ParamKind
 
 
 class TestOMIT:
@@ -32,10 +32,10 @@ class TestDefineDecorator:
         assert s.has('user')
         params = s.get('user').params
         assert params[0].name == 'name'
-        assert params[0].kind == 'positional'
+        assert params[0].kind == ParamKind.POSITIONAL
         assert params[0].schema_type == 'string'
         assert params[1].name == 'email'
-        assert params[1].kind == 'named'
+        assert params[1].kind == ParamKind.NAMED
 
     def test_named_with_default(self):
         s = Schema()

@@ -6,7 +6,7 @@ import re
 
 from ._binder import _validate_type
 from ._errors import BindError
-from ._types import RawEntry
+from ._types import RawEntry, ParamKind
 
 _IDENT_RE = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
 
@@ -88,7 +88,7 @@ def _format_dict(entry, schema=None, allow_extra=False):
                 _validate_type(value, param.schema_type, 0, param.name)
             except BindError as e:
                 raise ValueError(str(e)) from None
-            if param.kind == "positional" and not param.variadic:
+            if param.kind == ParamKind.POSITIONAL and not param.variadic:
                 parts.append(_format_value(value))
             elif param.variadic:
                 # Variadic: expand array as positional args
@@ -96,7 +96,7 @@ def _format_dict(entry, schema=None, allow_extra=False):
                     raise TypeError(f"Variadic field '{param.name}' must be a list, got {type(value).__name__}")
                 for v in value:
                     parts.append(_format_value(v))
-            elif param.kind == "named":
+            elif param.kind == ParamKind.NAMED:
                 parts.append(f"{param.name}={_format_value(value)}")
 
         # Check for extra keys not in schema
@@ -158,7 +158,7 @@ def _format_schema_param(param):
 
     if param.variadic:
         prefix = "*"
-    elif param.kind == "named":
+    elif param.kind == ParamKind.NAMED:
         prefix = "--"
 
     name = f"{prefix}{param.name}"

@@ -84,7 +84,7 @@ def main():
 
         elif mode == "raw":
             for entry in loads_raw(text):
-                print(json.dumps(entry, ensure_ascii=False))
+                print(json.dumps(entry.to_dict(), ensure_ascii=False))
 
         else:
             # bind mode
