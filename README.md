@@ -75,7 +75,7 @@ schema = fsonl.Schema.from_string(
     "@schema log(level: string, msg: string)"
 )
 
-print(fsonl.dumps({"type": "log", "level": "info", "msg": "hello"}, schema=schema))
+print(fsonl.dumps([{"type": "log", "level": "info", "msg": "hello"}], schema=schema))
 # @schema log(level: string, msg: string)
 # log("info", "hello")
 ```
@@ -114,7 +114,7 @@ print(entry["named"])       # {'flag': True}
 | `load_raw(fp)` | Parse from file object without binding (Stage 1 only) |
 | `iter_entries(source, *, schema, ignore_inline_schema, extra_fields)` | Lazy iterator over bound entries |
 | `iter_raw(source)` | Lazy iterator over raw entries |
-| `bind(entry, schema, *, extra_fields)` | Bind a single raw dict to a Schema |
+| `bind(entry, schema, *, line, extra_fields)` | Bind a single raw dict to a Schema |
 
 ### Serialization
 
@@ -179,9 +179,6 @@ echo '@schema x(a: number)\nx(1)' | python -m fsonl parse
 
 # Raw parse (no binding)
 echo 'x(1)' | python -m fsonl parse --raw
-
-# Unknown types as raw dict
-echo 'x(1)' | python -m fsonl parse --allow-unknown
 
 # Extract @schema directives only
 echo '@schema x(a: number)\nx(1)' | python -m fsonl parse --schema

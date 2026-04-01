@@ -11,11 +11,11 @@ from ._types import RawEntry, ParamKind
 _IDENT_RE = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
 
 
-def dumps(entries_or_entry, *, schema=None, allow_extra=False, exclude_schema=False):
-    """Serialize entry/entries to FSONL text.
+def dumps(entries, *, schema=None, allow_extra=False, exclude_schema=False):
+    """Serialize entries to FSONL text.
 
     Args:
-        entries_or_entry: single entry dict or list of entry dicts
+        entries: list of entry dicts or RawEntry objects
         schema: optional Schema for positional restoration
         allow_extra: if True, ignore extra keys not in schema.
                      if False (default), raise on extra keys.
@@ -25,20 +25,15 @@ def dumps(entries_or_entry, *, schema=None, allow_extra=False, exclude_schema=Fa
     Returns:
         FSONL text string with trailing newline. Empty list returns empty string.
     """
-    if isinstance(entries_or_entry, list):
-        if not entries_or_entry:
-            return ''
-        parts = []
-        if schema is not None and not exclude_schema:
-            for name in schema.type_names():
-                parts.append(_format_schema_directive(schema.get(name)))
-        parts.extend(_format_one(e, schema, allow_extra) for e in entries_or_entry)
-        return '\n'.join(parts) + '\n'
+    if not isinstance(entries, list):
+        raise TypeError("dumps() requires a list of entries")
+    if not entries:
+        return ''
     parts = []
     if schema is not None and not exclude_schema:
         for name in schema.type_names():
             parts.append(_format_schema_directive(schema.get(name)))
-    parts.append(_format_one(entries_or_entry, schema, allow_extra))
+    parts.extend(_format_one(e, schema, allow_extra) for e in entries)
     return '\n'.join(parts) + '\n'
 
 

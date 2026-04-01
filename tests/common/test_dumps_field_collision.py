@@ -31,7 +31,7 @@ class TestBoundEntryWithCollisionFieldNames:
         """
         schema = Schema.from_string('@schema T(--positional: string)')
         entry = {"type": "T", "positional": "some_value"}
-        result = dumps(entry, schema=schema, exclude_schema=True)
+        result = dumps([entry], schema=schema, exclude_schema=True)
         # Should produce T(positional="some_value") — a named arg
         assert result == 'T(positional="some_value")\n'
 
@@ -46,7 +46,7 @@ class TestBoundEntryWithCollisionFieldNames:
         """
         schema = Schema.from_string('@schema T(--named: string)')
         entry = {"type": "T", "named": "some_value"}
-        result = dumps(entry, schema=schema, exclude_schema=True)
+        result = dumps([entry], schema=schema, exclude_schema=True)
         # Should produce T(named="some_value")
         assert result == 'T(named="some_value")\n'
 
@@ -61,7 +61,7 @@ class TestBoundEntryWithCollisionFieldNames:
         """
         schema = Schema.from_string('@schema T(--positional: string, --named: string)')
         entry = {"type": "T", "positional": "p_val", "named": "n_val"}
-        result = dumps(entry, schema=schema, exclude_schema=True)
+        result = dumps([entry], schema=schema, exclude_schema=True)
         assert result == 'T(positional="p_val", named="n_val")\n'
 
     # ------------------------------------------------------------------
@@ -76,7 +76,7 @@ class TestBoundEntryWithCollisionFieldNames:
         """
         schema = Schema.from_string('@schema T(positional: number[])')
         entry = {"type": "T", "positional": [1, 2]}
-        result = dumps(entry, schema=schema, exclude_schema=True)
+        result = dumps([entry], schema=schema, exclude_schema=True)
         # 'positional' is a positional schema param whose value is [1, 2]
         assert result == 'T([1, 2])\n'
 
@@ -92,7 +92,7 @@ class TestBoundEntryWithCollisionFieldNames:
         parsed = loads(original_text, schema=schema)
         assert parsed.entries[0] == {"type": "T", "positional": "hello"}
 
-        serialized = dumps(parsed.entries[0], schema=schema, exclude_schema=True)
+        serialized = dumps([parsed.entries[0]], schema=schema, exclude_schema=True)
         re_parsed = loads(serialized, schema=schema)
         assert re_parsed.entries[0] == parsed.entries[0]
 
@@ -104,7 +104,7 @@ class TestBoundEntryWithCollisionFieldNames:
         must still be serialized as a raw entry regardless of field names.
         """
         raw = RawEntry(type="T", positional=[1, 2], named={"x": "val"})
-        result = dumps(raw)
+        result = dumps([raw])
         assert result == 'T(1, 2, x="val")\n'
 
     def test_raw_entry_with_collision_names_in_named(self):
@@ -113,5 +113,5 @@ class TestBoundEntryWithCollisionFieldNames:
         not the key names).
         """
         raw = RawEntry(type="T", positional=[], named={"positional": "p", "named": "n"})
-        result = dumps(raw)
+        result = dumps([raw])
         assert result == 'T(positional="p", named="n")\n'

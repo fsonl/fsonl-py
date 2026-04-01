@@ -42,9 +42,9 @@ jobs:
       - name: Check version against PyPI
         run: |
           LOCAL=$(python -c "
-          import tomllib, pathlib
-          data = tomllib.loads(pathlib.Path('pyproject.toml').read_text())
-          print(data['project']['version'])
+          import re, pathlib
+          text = pathlib.Path('src/fsonl/__init__.py').read_text()
+          print(re.search(r'__version__\s*=\s*\"(.+?)\"', text).group(1))
           ")
           echo "Local version: $LOCAL"
 
