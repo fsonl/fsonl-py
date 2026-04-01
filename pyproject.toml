@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "fsonl"
-version = "0.1.0"
+version = "0.2.0"
 description = "Function-Styled Object Notation Lines — a line-based serialization format with typed schemas"
 readme = "README.md"
 license = "MIT"
