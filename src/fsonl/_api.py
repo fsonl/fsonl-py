@@ -163,20 +163,19 @@ def iter_raw(source: Union[str, IO[str]]) -> Iterator[RawEntry]:
 # ── Single entry ──
 
 def bind(
-    entry,
+    entry: RawEntry,
     schema: Schema,
     *,
     line: Optional[int] = None,
     extra_fields: ExtraFieldPolicy = ExtraFieldPolicy.ERROR,
 ) -> Any:
-    """Bind a single RawEntry or raw dict to a Schema."""
+    """Bind a single RawEntry to a Schema."""
     type_name = entry["type"]
-    if line is None:
-        line = entry.get("_line", 0)
+    resolved_line: int = line if line is not None else entry.get("_line", 0)
     if not schema.has(type_name):
-        raise BindError(line, f"No schema for type '{type_name}'")
+        raise BindError(resolved_line, f"No schema for type '{type_name}'")
     directive = schema.get(type_name)
-    return bind_entry(entry, directive, line_number=line, extra_fields=extra_fields)
+    return bind_entry(entry, directive, line_number=resolved_line, extra_fields=extra_fields)
 
 
 # ── Serialization ──

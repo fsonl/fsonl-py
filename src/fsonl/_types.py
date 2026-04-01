@@ -95,8 +95,8 @@ def schema_type_to_json(st: Any) -> Any:
 class RawEntry:
     """A raw parsed entry (Stage 1 AST)."""
     type: str
-    positional: list
-    named: dict
+    positional: list[Any]
+    named: dict[str, Any]
     _line: int = field(default=0, repr=False, compare=False)
 
     def __getitem__(self, key: str) -> Any:
