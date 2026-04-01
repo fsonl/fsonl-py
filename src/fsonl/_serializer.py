@@ -15,7 +15,7 @@ def dumps(entries, *, schema=None, allow_extra=False, exclude_schema=False):
     """Serialize entries to FSONL text.
 
     Args:
-        entries: list of entry dicts
+        entries: list of entry dicts or RawEntry objects
         schema: optional Schema for positional restoration
         allow_extra: if True, ignore extra keys not in schema.
                      if False (default), raise on extra keys.

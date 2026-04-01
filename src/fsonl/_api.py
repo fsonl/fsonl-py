@@ -181,7 +181,7 @@ def bind(
 # ── Serialization ──
 
 def dump(
-    entries: list,
+    entries: List[Union[dict, RawEntry]],
     fp: IO[str],
     *,
     schema: Optional[Schema] = None,
@@ -196,7 +196,7 @@ def dump(
 
 
 def dumps(
-    entries: list,
+    entries: List[Union[dict, RawEntry]],
     *,
     schema: Optional[Schema] = None,
     allow_extra: bool = False,
