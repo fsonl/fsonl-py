@@ -43,7 +43,7 @@ class TestRawDumpsRoundtrip:
         original = 'log("hello", 42)\n'
         result = loads_raw(original)
         entry = result.entries[0]
-        serialized = dumps(entry)
+        serialized = dumps([entry])
         result2 = loads_raw(serialized)
         assert result2.entries[0].type == entry.type
         assert result2.entries[0].positional == entry.positional
@@ -53,7 +53,7 @@ class TestRawDumpsRoundtrip:
         original = 'x(name="alice", count=3)\n'
         result = loads_raw(original)
         entry = result.entries[0]
-        serialized = dumps(entry)
+        serialized = dumps([entry])
         result2 = loads_raw(serialized)
         assert result2.entries[0].named == entry.named
 
@@ -61,7 +61,7 @@ class TestRawDumpsRoundtrip:
         original = 'evt()\n'
         result = loads_raw(original)
         entry = result.entries[0]
-        serialized = dumps(entry)
+        serialized = dumps([entry])
         assert serialized == 'evt()\n'
         result2 = loads_raw(serialized)
         assert result2.entries[0].type == 'evt'
@@ -75,35 +75,35 @@ class TestSchemaBindRoundtrip:
     def test_string_param_roundtrip(self):
         schema = Schema.from_string('@schema user(name: string, --role: string)')
         entry = {"type": "user", "name": "alice", "role": "admin"}
-        text = dumps(entry, schema=schema, exclude_schema=True)
+        text = dumps([entry], schema=schema, exclude_schema=True)
         result = loads(text, schema=schema)
         assert result.entries[0] == entry
 
     def test_number_param_roundtrip(self):
         schema = Schema.from_string('@schema point(x: number, y: number)')
         entry = {"type": "point", "x": 3.14, "y": 2.72}
-        text = dumps(entry, schema=schema, exclude_schema=True)
+        text = dumps([entry], schema=schema, exclude_schema=True)
         result = loads(text, schema=schema)
         assert result.entries[0] == entry
 
     def test_bool_param_roundtrip(self):
         schema = Schema.from_string('@schema flag(--enabled: bool)')
         entry = {"type": "flag", "enabled": True}
-        text = dumps(entry, schema=schema, exclude_schema=True)
+        text = dumps([entry], schema=schema, exclude_schema=True)
         result = loads(text, schema=schema)
         assert result.entries[0] == entry
 
     def test_array_param_roundtrip(self):
         schema = Schema.from_string('@schema tags(*items: string[])')
         entry = {"type": "tags", "items": ["a", "b", "c"]}
-        text = dumps(entry, schema=schema, exclude_schema=True)
+        text = dumps([entry], schema=schema, exclude_schema=True)
         result = loads(text, schema=schema)
         assert result.entries[0] == entry
 
     def test_optional_absent_roundtrip(self):
         schema = Schema.from_string('@schema x(a: string, --b?: number)')
         entry = {"type": "x", "a": "ok"}
-        text = dumps(entry, schema=schema, exclude_schema=True)
+        text = dumps([entry], schema=schema, exclude_schema=True)
         result = loads(text, schema=schema)
         assert result.entries[0]["a"] == "ok"
         assert "b" not in result.entries[0]
@@ -111,7 +111,7 @@ class TestSchemaBindRoundtrip:
     def test_schema_header_included_roundtrip(self):
         schema = Schema.from_string('@schema x(a: string)')
         entry = {"type": "x", "a": "hello"}
-        text = dumps(entry, schema=schema)
+        text = dumps([entry], schema=schema)
         # Should be parseable without providing schema separately
         result = loads(text)
         assert result.entries[0] == entry

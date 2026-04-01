@@ -181,7 +181,7 @@ def bind(
 # ── Serialization ──
 
 def dump(
-    entries_or_entry: Any,
+    entries: list,
     fp: IO[str],
     *,
     schema: Optional[Schema] = None,
@@ -189,19 +189,19 @@ def dump(
     exclude_schema: bool = False,
 ) -> None:
     """Serialize entries to FSONL and write to a file object."""
-    fp.write(_dumps(entries_or_entry, schema=schema, allow_extra=allow_extra,
+    fp.write(_dumps(entries, schema=schema, allow_extra=allow_extra,
                     exclude_schema=exclude_schema))
 
 
 def dumps(
-    entries_or_entry: Any,
+    entries: list,
     *,
     schema: Optional[Schema] = None,
     allow_extra: bool = False,
     exclude_schema: bool = False,
 ) -> str:
     """Serialize entries to FSONL text."""
-    return _dumps(entries_or_entry, schema=schema, allow_extra=allow_extra,
+    return _dumps(entries, schema=schema, allow_extra=allow_extra,
                   exclude_schema=exclude_schema)
 
 

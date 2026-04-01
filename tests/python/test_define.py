@@ -103,7 +103,7 @@ class TestDefineDecorator:
         def user(name: str, *, email: str, role: str = "member"): ...
 
         entry = {"type": "user", "name": "alice", "email": "a@b.com", "role": "admin"}
-        text = dumps(entry, schema=s, exclude_schema=True)
+        text = dumps([entry], schema=s, exclude_schema=True)
         result = loads(text, schema=s)
         assert result.entries[0] == entry
 

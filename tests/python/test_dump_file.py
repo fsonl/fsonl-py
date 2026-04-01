@@ -11,19 +11,19 @@ class TestDump:
 
     def test_dump_single_entry(self):
         buf = io.StringIO()
-        dump({"type": "x", "v": 1}, buf)
+        dump([{"type": "x", "v": 1}], buf)
         assert buf.getvalue() == 'x(v=1)\n'
 
     def test_dump_with_schema(self):
         schema = Schema.from_string('@schema x(a: string)')
         buf = io.StringIO()
-        dump({"type": "x", "a": "hi"}, buf, schema=schema)
+        dump([{"type": "x", "a": "hi"}], buf, schema=schema)
         assert buf.getvalue() == '@schema x(a: string)\nx("hi")\n'
 
     def test_dump_with_exclude_schema(self):
         schema = Schema.from_string('@schema x(a: string)')
         buf = io.StringIO()
-        dump({"type": "x", "a": "hi"}, buf, schema=schema, exclude_schema=True)
+        dump([{"type": "x", "a": "hi"}], buf, schema=schema, exclude_schema=True)
         assert buf.getvalue() == 'x("hi")\n'
 
     def test_dump_list_of_entries(self):
@@ -36,7 +36,7 @@ class TestDump:
     def test_dump_writes_to_real_file(self):
         with tempfile.NamedTemporaryFile(mode='w', suffix='.fsonl', delete=False) as f:
             path = f.name
-            dump({"type": "ev", "n": 7}, f)
+            dump([{"type": "ev", "n": 7}], f)
         try:
             with open(path) as f:
                 assert f.read() == 'ev(n=7)\n'
