@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "fsonl"
-version = "0.2.0"
+dynamic = ["version"]
 description = "Function-Styled Object Notation Lines — a line-based serialization format with typed schemas"
 readme = "README.md"
 license = "MIT"
@@ -35,6 +35,9 @@ Repository = "https://github.com/fsonl/fsonl-py"
 
 [project.scripts]
 fsonl = "fsonl.__main__:main"
+
+[tool.hatch.version]
+path = "src/fsonl/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/fsonl"]

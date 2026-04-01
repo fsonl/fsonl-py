@@ -1,4 +1,4 @@
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 from ._errors import FsonlError, ParseError, SchemaError, BindError
 from ._types import ParseResult, RawEntry, SchemaDirective, SchemaParam, ParamKind, ExtraFieldPolicy, OMIT
