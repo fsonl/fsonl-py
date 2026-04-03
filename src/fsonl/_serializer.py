@@ -27,13 +27,13 @@ def dumps(entries, *, schema=None, allow_extra=False, exclude_schema=False):
     """
     if not isinstance(entries, list):
         raise TypeError("dumps() requires a list of entries")
-    if not entries:
-        return ''
     parts = []
     if schema is not None and not exclude_schema:
         for name in schema.type_names():
             parts.append(_format_schema_directive(schema.get(name)))
     parts.extend(_format_one(e, schema, allow_extra) for e in entries)
+    if not parts:
+        return ''
     return '\n'.join(parts) + '\n'
 
 

@@ -51,3 +51,11 @@ class TestSchemaBareCarriageReturn:
     def test_bare_cr_mid_schema_from_string(self):
         with pytest.raises(ParseError):
             Schema.from_string('@schema x(a:\r string)')
+
+
+class TestSchemaTrailingContentHint:
+    """Trailing content after ')' should hint about -- prefix for named params."""
+
+    def test_curly_brace_after_paren_hints_double_dash(self):
+        with pytest.raises(ParseError, match="--"):
+            Schema.from_string('@schema x(a: string) {b: number}')

@@ -80,6 +80,22 @@ print(fsonl.dumps([{"type": "log", "level": "info", "msg": "hello"}], schema=sch
 # log("info", "hello")
 ```
 
+### Writer (append-friendly)
+
+```python
+import fsonl
+
+schema = fsonl.Schema.from_string("@schema event(level: string, msg: string)")
+
+# First run: creates file with schema header + entries
+with fsonl.Writer("events.fsonl", schema=schema) as w:
+    w.write({"type": "event", "level": "info", "msg": "started"})
+
+# Later: appends entries without duplicating the header
+with fsonl.Writer("events.fsonl", schema=schema) as w:
+    w.write({"type": "event", "level": "warn", "msg": "timeout"})
+```
+
 ### Stream from file
 
 ```python
@@ -122,6 +138,7 @@ print(entry["named"])       # {'flag': True}
 |----------|-------------|
 | `dumps(entries, *, schema, allow_extra, exclude_schema)` | Serialize to FSONL text |
 | `dump(entries, fp, *, schema, allow_extra, exclude_schema)` | Serialize to file object |
+| `Writer(path, *, schema)` | Append-friendly file writer (auto header management) |
 
 ### Schema
 

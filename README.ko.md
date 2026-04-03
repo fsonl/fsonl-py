@@ -80,6 +80,22 @@ print(fsonl.dumps([{"type": "log", "level": "info", "msg": "hello"}], schema=sch
 # log("info", "hello")
 ```
 
+### Writer (append 친화)
+
+```python
+import fsonl
+
+schema = fsonl.Schema.from_string("@schema event(level: string, msg: string)")
+
+# 첫 실행: 스키마 헤더 + 엔트리 기록
+with fsonl.Writer("events.fsonl", schema=schema) as w:
+    w.write({"type": "event", "level": "info", "msg": "started"})
+
+# 이후: 헤더 중복 없이 엔트리만 추가
+with fsonl.Writer("events.fsonl", schema=schema) as w:
+    w.write({"type": "event", "level": "warn", "msg": "timeout"})
+```
+
 ### 파일 스트리밍
 
 ```python
@@ -122,6 +138,7 @@ print(entry["named"])       # {'flag': True}
 |------|------|
 | `dumps(entries, *, schema, allow_extra, exclude_schema)` | FSONL 텍스트로 직렬화 |
 | `dump(entries, fp, *, schema, allow_extra, exclude_schema)` | 파일 객체에 직렬화 |
+| `Writer(path, *, schema)` | Append 친화 파일 Writer (헤더 자동 관리) |
 
 ### 스키마
 

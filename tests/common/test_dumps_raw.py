@@ -1,6 +1,8 @@
 """Common API tests — all language implementations should have equivalent tests.
 
-Covers: dumps() with RawEntry objects, validation of type names and named keys.
+Covers: dumps() with RawEntry — validation of type names and named keys.
+These test error messages and exception types, which E2E only checks exit code.
+Valid RawEntry serialization is covered by E2E serialize/raw.toml.
 """
 
 import pytest
@@ -27,14 +29,3 @@ class TestFormatRawRejectsInvalid:
     def test_reserved_type_key(self):
         with pytest.raises(ValueError, match="type"):
             dumps([RawEntry("ok", [], {"type": "x"})])
-
-
-class TestFormatRawValid:
-    def test_simple(self):
-        assert dumps([RawEntry("log", ["hello"], {})]) == 'log("hello")\n'
-
-    def test_with_named(self):
-        assert dumps([RawEntry("x", [], {"name": "ok"})]) == 'x(name="ok")\n'
-
-    def test_empty(self):
-        assert dumps([RawEntry("x", [], {})]) == 'x()\n'

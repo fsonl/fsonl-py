@@ -107,6 +107,56 @@ class TestDefineDecorator:
         result = loads(text, schema=s)
         assert result.entries[0] == entry
 
+    def test_dict_maps_to_any(self):
+        s = Schema()
+
+        @s.define
+        def x(a: str, *, meta: dict): ...
+
+        p_pos = s.get('x').params[0]
+        assert p_pos.schema_type == 'string'
+        p_named = s.get('x').params[1]
+        assert p_named.schema_type == 'any'
+
+    def test_any_maps_to_any(self):
+        from typing import Any
+        s = Schema()
+
+        @s.define
+        def x(payload: Any): ...
+
+        p = s.get('x').params[0]
+        assert p.schema_type == 'any'
+
+    def test_dict_positional(self):
+        s = Schema()
+
+        @s.define
+        def x(data: dict): ...
+
+        p = s.get('x').params[0]
+        assert p.schema_type == 'any'
+        assert p.kind == ParamKind.POSITIONAL
+
+    def test_dict_str_any_maps_to_any(self):
+        from typing import Any
+        s = Schema()
+
+        @s.define
+        def x(*, meta: dict[str, Any]): ...
+
+        p = s.get('x').params[0]
+        assert p.schema_type == 'any'
+
+    def test_dict_str_int_maps_to_any(self):
+        s = Schema()
+
+        @s.define
+        def x(*, counts: dict[str, int]): ...
+
+        p = s.get('x').params[0]
+        assert p.schema_type == 'any'
+
     def test_missing_annotation_raises(self):
         s = Schema()
         with pytest.raises(TypeError, match="must have a type annotation"):

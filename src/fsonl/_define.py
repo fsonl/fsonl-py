@@ -86,12 +86,20 @@ def _python_type_to_schema(ann):
     if ann is typing.Any:
         return "any"
 
+    # dict → any (arbitrary JSON object)
+    if ann is dict:
+        return "any"
+
     # Primitives
     if ann in _PRIMITIVE_MAP:
         return _PRIMITIVE_MAP[ann]
 
     origin = get_origin(ann)
     args = get_args(ann)
+
+    # dict[K, V] → any (FSONL has no map type)
+    if origin is dict:
+        return "any"
 
     # list[X] → array
     if origin is list:
