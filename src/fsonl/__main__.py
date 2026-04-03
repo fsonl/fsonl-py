@@ -134,13 +134,11 @@ def _serialize_error(line: int, message: str):
 def _serialize_main(mode, code_schema, allow_extra, exclude_schema):
     """Handle the serialize subcommand."""
     text = sys.stdin.read()
-    lines = [line for line in text.splitlines() if line.strip()]
-
-    if not lines:
-        return
 
     entries = []
-    for line_num, line in enumerate(lines, 1):
+    for line_num, line in enumerate(text.splitlines(), 1):
+        if not line.strip():
+            continue
         # Parse JSONL
         try:
             obj = json.loads(line)

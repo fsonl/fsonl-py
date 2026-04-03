@@ -29,7 +29,6 @@ class Writer:
         self._path = path
         self._schema = schema
         self._fp = None
-        self._header_written = False
         self._open()
 
     def _open(self) -> None:
@@ -40,10 +39,8 @@ class Writer:
                 header = dumps([], schema=self._schema)
                 if header:
                     self._fp.write(header)
-                    self._header_written = True
         else:
             self._fp = open(self._path, "a", encoding="utf-8", newline="")
-            self._header_written = True  # assume existing file has header
 
     def write(self, entry: Union[dict, RawEntry]) -> None:
         """Write a single entry to the file."""

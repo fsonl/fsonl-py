@@ -97,6 +97,10 @@ def _python_type_to_schema(ann):
     origin = get_origin(ann)
     args = get_args(ann)
 
+    # dict[K, V] → any (FSONL has no map type)
+    if origin is dict:
+        return "any"
+
     # list[X] → array
     if origin is list:
         if not args:

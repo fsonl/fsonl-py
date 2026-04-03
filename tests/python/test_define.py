@@ -138,6 +138,25 @@ class TestDefineDecorator:
         assert p.schema_type == 'any'
         assert p.kind == ParamKind.POSITIONAL
 
+    def test_dict_str_any_maps_to_any(self):
+        from typing import Any
+        s = Schema()
+
+        @s.define
+        def x(*, meta: dict[str, Any]): ...
+
+        p = s.get('x').params[0]
+        assert p.schema_type == 'any'
+
+    def test_dict_str_int_maps_to_any(self):
+        s = Schema()
+
+        @s.define
+        def x(*, counts: dict[str, int]): ...
+
+        p = s.get('x').params[0]
+        assert p.schema_type == 'any'
+
     def test_missing_annotation_raises(self):
         s = Schema()
         with pytest.raises(TypeError, match="must have a type annotation"):
