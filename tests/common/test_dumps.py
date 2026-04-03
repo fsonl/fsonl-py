@@ -74,3 +74,27 @@ class TestDumpsListSchemaApi:
         result = dumps(entries, schema=schema)
         assert result.count('@schema') == 1
         assert result.startswith('@schema x(a: string)\n')
+
+
+class TestDumpsEmptyWithSchema:
+    """dumps([]) with schema should emit schema header."""
+
+    def test_empty_list_with_schema_returns_header(self):
+        schema = Schema.from_string('@schema x(a: string)')
+        result = dumps([], schema=schema)
+        assert result == '@schema x(a: string)\n'
+
+    def test_empty_list_with_schema_exclude_returns_empty(self):
+        schema = Schema.from_string('@schema x(a: string)')
+        result = dumps([], schema=schema, exclude_schema=True)
+        assert result == ''
+
+    def test_empty_list_without_schema_returns_empty(self):
+        result = dumps([])
+        assert result == ''
+
+    def test_empty_list_multi_type_schema_returns_all_headers(self):
+        schema = Schema.from_string('@schema x(a: string)\n@schema y(b: number)')
+        result = dumps([], schema=schema)
+        assert '@schema x(a: string)' in result
+        assert '@schema y(b: number)' in result

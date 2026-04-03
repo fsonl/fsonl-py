@@ -86,6 +86,10 @@ def _python_type_to_schema(ann):
     if ann is typing.Any:
         return "any"
 
+    # dict → any (arbitrary JSON object)
+    if ann is dict:
+        return "any"
+
     # Primitives
     if ann in _PRIMITIVE_MAP:
         return _PRIMITIVE_MAP[ann]

@@ -235,7 +235,10 @@ def _check_trailing(line, pos, line_number):
         return
     if line[pos:pos + 2] == '//':
         return
-    raise ParseError(line_number, f"Unexpected content after ')' at position {pos}")
+    hint = ""
+    if pos < len(line) and line[pos] == '{':
+        hint = " (named parameters use '--' prefix inside parentheses, e.g. --key: type)"
+    raise ParseError(line_number, f"Unexpected content after ')' at position {pos}{hint}")
 
 
 def _check_default_type(value, schema_type):
